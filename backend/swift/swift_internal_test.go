@@ -1,6 +1,12 @@
 package swift
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/ncw/swift"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestInternalUrlEncode(t *testing.T) {
 	for _, test := range []struct {
@@ -22,4 +28,23 @@ func TestInternalUrlEncode(t *testing.T) {
 			t.Logf("%q: want %q got %q", test.in, test.want, got)
 		}
 	}
+}
+
+func TestInternalShouldRetryHeaders(t *testing.T) {
+	headers := swift.Headers{
+		"Content-Length": "64",
+		"Content-Type":   "text/html; charset=UTF-8",
+		"Date":           "Mon: 18 Mar 2019 12:11:23 GMT",
+		"Retry-After":    "1",
+	}
+	err := &swift.Error{
+		StatusCode: 429,
+		Text:       "Too Many Requests",
+	}
+	start := time.Now()
+	retry, gotErr := shouldRetryHeaders(headers, err)
+	dt := time.Since(start)
+	assert.True(t, retry)
+	assert.Equal(t, err, gotErr)
+	assert.True(t, dt > time.Second/2)
 }
