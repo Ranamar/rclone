@@ -1024,6 +1024,7 @@ func (o *Object) Open(options ...fs.OpenOption) (in io.ReadCloser, err error) {
 	err = o.fs.pacer.Call(func() (bool, error) {
 		var rxHeaders swift.Headers
 		in, rxHeaders, err = o.fs.c.ObjectOpen(o.fs.container, o.fs.root+o.remote, !isRanging, headers)
+		fs.Infof(nil, "Open rxHeaders = %#v", rxHeaders) // FIXME remove
 		return shouldRetryHeaders(rxHeaders, err)
 	})
 	return
